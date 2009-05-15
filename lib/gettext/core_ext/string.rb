@@ -7,6 +7,10 @@
   license terms as Ruby.
 =end
 
+unless Object.const_defined?(:KeyError)
+  class KeyError < IndexError; end
+end
+
 # Extension for String class. This feature is included in Ruby 1.9 or later but not occur TypeError.
 #
 # String#% method which accept "named argument". The translator can know 
@@ -56,12 +60,14 @@ class String
       ret.gsub!(PERCENT_MATCH_RE) {|match|
         if match == '%%'
           '%'
-        elsif $1
-          key = $1.to_sym
-          args.has_key?(key) ? args[key] : match
-        elsif $2
-          key = $2.to_sym
-          args.has_key?(key) ? sprintf("%#{$3}", args[key]) : match
+        else
+          key = ($1 || $2).to_sym
+          if args.key?(key)
+            fmt = $3 || "s"
+            sprintf("%#{fmt}", args[key])
+          else
+            raise KeyError, "key{#{key}} not found"
+          end
         end
       }
       ret

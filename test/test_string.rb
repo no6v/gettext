@@ -22,8 +22,10 @@ class TestGetTextString < Test::Unit::TestCase
   end
 
   def test_sprintf_lack_argument
-    assert_equal("%{num}, test", "%{num}, %{record}" % {:record => "test"})
-    assert_equal("%{record}", "%{record}" % {:num => 1})
+    e = assert_raise(KeyError){"%{num}, %{record}" % {:record => "test"}}
+    assert_equal "key{num} not found", e.message
+    e = assert_raise(KeyError){"%{record}" % {:num => 1}}
+    assert_equal "key{record} not found", e.message
   end
 
   def test_no_placeholder
